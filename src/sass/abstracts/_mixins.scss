@@ -1,0 +1,24 @@
+
+@mixin text-setting($family: 'Georgia', $weight: 400, $font-size: 16px, $line: 110%, $spacing: 0.06em) {
+    font-family: $family;
+    font-style: normal;
+    font-weight: $weight;
+    font-size: $font-size;
+    line-height: $line;
+    
+    letter-spacing: $spacing;
+}
+
+@mixin flex-center () {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+@mixin close-icon($width, $height) {
+    background: black;
+    position: absolute;
+    width: $width;
+    height: $height;
+    transition: 0.2s cubic-bezier(0.34, 0.7, 1, 1);
+}

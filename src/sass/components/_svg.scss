@@ -1,0 +1,19 @@
+@use "../abstracts/variables" as *;
+
+.car__svg {
+    width: 4rem;
+    height: 3rem;
+    mask: url("../assets/svg/car.svg") no-repeat;
+    mask-size: cover;
+    transform: scale(-1, 1);
+}
+
+.flag__svg {
+    width: 3rem;
+    height: 3rem;
+    position: absolute;
+    mask: url("../assets/svg/flag.svg") no-repeat;
+    mask-size: contain;
+    background-color: $main-red;
+    right: 6rem;
+}

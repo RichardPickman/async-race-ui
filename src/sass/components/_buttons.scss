@@ -1,0 +1,22 @@
+@use "../abstracts/variables" as *;
+
+.btn {
+    border: none;
+    padding: 0.1rem 0.3rem;
+    border-radius: 0.3rem;
+    background-color: $main-blue;
+    text-transform: uppercase;
+
+    cursor: pointer;
+}
+
+.btn:hover {
+    transition: box-shadow 1px;
+    background-color: $main-blue;
+    box-shadow: 0 0 10px 2px $main-blue;
+}
+
+.disabled {
+    background-color: $input-color;
+    pointer-events: none;
+}
