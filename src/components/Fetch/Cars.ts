@@ -3,7 +3,7 @@ import { Car } from "../../types";
 type args = number | null;
 
 export namespace FetchCars {
-    export const getCars = async (page: args, limit: args) => {
+    export const getCars = async (page: args, limit: args): Promise<Car[]> => {
         const options = { method: "GET" };
         const response =
             page || limit
@@ -13,7 +13,11 @@ export namespace FetchCars {
         return response.json();
     };
 
-    export const getCar = async (id: number) => await fetch(`http://127.0.0.1:3000/garage/${id}`);
+    export const getCar = async (id: number): Promise<Car> => {
+        const response = await fetch(`http://127.0.0.1:3000/garage/${id}`);
+
+        return response.json();
+    };
 
     export const createCar = async (data: Car) => {
         const response = await fetch("http://127.0.0.1:3000/garage", {

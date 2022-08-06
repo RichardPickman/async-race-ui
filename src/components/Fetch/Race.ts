@@ -21,3 +21,5 @@ namespace FetchRace {
         return response;
     };
 }
+
+export default FetchRace;

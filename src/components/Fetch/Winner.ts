@@ -1,15 +1,16 @@
 import { Winner } from "../../types";
 
 namespace FetchWinner {
-    export const getWinners = async (id: number, status: "started" | "stopped") => {
-        const response = await fetch(`http://localhost:3000/winners`, {
+    export const getWinners = async (sort?: "id" | "wins" | "time", order?: "ASC" | "DESC") => {
+        const setQuery = `sort=${sort ? sort : "id"}&order=${order ? order : "ASC"}`;
+        const response = await fetch(`http://localhost:3000/winners?${setQuery}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
             },
         });
 
-        return response;
+        return response.json();
     };
 
     export const getWinner = async (id: number) => await fetch(`http://localhost:3000/winners/${id}`);
@@ -23,7 +24,7 @@ namespace FetchWinner {
             body: JSON.stringify(data),
         });
 
-        return response;
+        return response.json();
     };
 
     export const removeWinner = async (id: number) => {
@@ -34,7 +35,7 @@ namespace FetchWinner {
             },
         });
 
-        return response;
+        return response.json();
     };
 
     export const updateWinner = async (id: number, data: Winner) => {
@@ -46,6 +47,8 @@ namespace FetchWinner {
             body: JSON.stringify(data),
         });
 
-        return response;
+        return response.json();
     };
 }
+
+export default FetchWinner;

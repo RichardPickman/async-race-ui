@@ -40,7 +40,7 @@ export const handlePages = async (action: string, page: number, limit: number) =
     }
 };
 
-export const startAnimation = (id: number, time: number) => {
+export const handleAnimation = (id: number, time: number) => {
     const car = document.querySelector(`[data-id="${id}"]`);
 
     console.log(car);
