@@ -9,8 +9,8 @@
     <body>
         <header>
             <ul class="nav">
-                <li class="nav__redirect btn">To garage</li>
-                <li class="nav__redirect btn">To winners</li>
+                <li class="nav__garage btn">To garage</li>
+                <li class="nav__winners btn">To winners</li>
             </ul>
         </header>
         <main>
@@ -43,23 +43,15 @@
                 </section>
             </section>
             <section class="winners hide">
-                <table>
-                    <thead>
+                <table class="winner-table">
+                    <thead class="winner-table__header">
                         <th colspan="1">Number</th>
                         <th colspan="1">Car</th>
                         <th colspan="1">Name</th>
                         <th colspan="1">Wins</th>
                         <th colspan="1">Best time (seconds)</th>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td class="winners__number">1</td>
-                            <td class="winners__car">asd</td>
-                            <td class="winners__name">Porshe</td>
-                            <td class="winners__wins">2</td>
-                            <td class="winners__time">5</td>
-                        </tr>
-                    </tbody>
+                    <tbody class="winner-table__winners"></tbody>
                 </table>
             </section>
         </main>
@@ -80,6 +72,15 @@
                     <div class="car__finish"></div>
                 </div>
             </div>
+        </template>
+        <template class="winnerTemp">
+            <tr class="winner">
+                <td class="winner__number">1</td>
+                <td class="winner__car">asd</td>
+                <td class="winner__name">Porshe</td>
+                <td class="winner__wins">2</td>
+                <td class="winner__time">5</td>
+            </tr>
         </template>
     </body>
 </html>
