@@ -1,12 +1,14 @@
 import { handleCarAmount, handlePages } from "./components/Race/helpers";
-import { getCars } from "./components/Race";
+import { getCars, resetRace, startRace } from "./components/Race";
 import { generateCars, handleCar } from "./helpers";
 import "./sass/style.scss";
+import { getWinners } from "./components/Winners";
 
 const App = async () => {
     let page = 1;
     let limit = 7;
 
+    getWinners();
     getCars(page, limit);
     handleCarAmount();
 
@@ -25,6 +27,20 @@ const App = async () => {
         page -= 1;
         handlePages("prev", page, limit);
     });
+
+    document.querySelector(".nav__garage")?.addEventListener("click", () => {
+        document.querySelector(".racing")?.classList.remove("hide");
+        document.querySelector(".winners")?.classList.add("hide");
+    });
+
+    document.querySelector(".nav__winners")?.addEventListener("click", () => {
+        document.querySelector(".racing")?.classList.add("hide");
+        document.querySelector(".winners")?.classList.remove("hide");
+    });
+
+    document.querySelector(".form__race")?.addEventListener("click", () => startRace());
+
+    document.querySelector(".form__reset")?.addEventListener("click", () => resetRace());
 };
 
 App();
