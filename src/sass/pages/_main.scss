@@ -89,3 +89,16 @@
 .hide {
     display: none;
 }
+
+th,
+td {
+    text-align: center;
+}
+
+.winner-table {
+    width: 50%;
+
+    &__header {
+        gap: 1rem;
+    }
+}
