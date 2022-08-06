@@ -1,5 +1,5 @@
 import { Car } from "./../../types/index";
-import Race from "../../render";
+import Race from "../../render/Race";
 import FetchCars from "../Fetch/Cars";
 
 const RaceEntity = new Race();
@@ -39,39 +39,68 @@ type engine = {
 
 export const initEngine = async (car: Car, status: "started" | "stopped") => {
     const start: engine = await FetchCars.handleEngine(car.id as number, status);
-    console.log(start);
 
     return start;
 };
 
 export const calculateTime = (distance: number, velocity: number) => distance / velocity;
 
-export const startEngine = async (car: Car, time: number) => {
-    const start = FetchCars.handleSwitch(car.id as number);
-    const findBlock = document.querySelector(`[data-id="${car.id}"]`) as HTMLElement;
-    const findCar = findBlock.querySelector(".car__model") as HTMLElement;
-    const width = window.innerWidth - 96 - 76 * 2;
-    const step = width / time;
-    let request: number;
-    let position = 0;
+export const startEngine = async (_car: Car, time: number) => {
+    const track = document.querySelector(`[data-id="${_car.id}"]`) as HTMLElement;
+    const car = track?.querySelector(".car__model") as HTMLElement;
+    const flag = track?.querySelector(".car__finish") as HTMLElement;
 
-    const performAnimation = () => {
-        position += step;
-        findCar.style.transform = `translateX(${position}%) scale(-1, 1)`;
-        if (position <= width) {
-            request = requestAnimationFrame(performAnimation);
+    const refreshRate = 60;
+
+    const flagPosition = track?.clientWidth - flag?.getBoundingClientRect().right;
+    const trackWidth = track?.clientWidth - car.getBoundingClientRect().left - flagPosition;
+
+    const interval = time / refreshRate;
+    const step = trackWidth / interval;
+
+    const targetPosition = car?.getBoundingClientRect().left + trackWidth;
+
+    let isEngineRunning = true;
+
+    let ts = Date.now();
+
+    const cb = () => {
+        const position = window.scrollX + car?.getBoundingClientRect().left + step;
+
+        if (Date.now() - ts >= interval) {
+            ts = Date.now();
+            car.style.left = `${position}px`;
+        }
+
+        if (position < targetPosition && isEngineRunning) {
+            requestAnimationFrame(cb);
         }
     };
 
-    request = requestAnimationFrame(performAnimation);
+    requestAnimationFrame(cb);
 
-    start.then(() => cancelAnimationFrame(request));
-    start.catch(() => cancelAnimationFrame(request));
+    const start = FetchCars.handleSwitch(_car.id as number);
+
+    start.catch(() => (isEngineRunning = false));
 };
 
-export const resetEngine = (car: Car) => {
-    const findBlock = document.querySelector(`[data-id="${car.id}"]`) as HTMLElement;
-    const findCar = findBlock.querySelector(".car__model") as HTMLElement;
+export const resetEngine = async (car: Car) => {
+    const carTag = document.querySelector(`[data-id="${car.id}"]`) as HTMLElement;
+    const carModel = carTag.querySelector(".car__model") as HTMLElement;
 
-    findCar.style.transform = `translateX(0px) scale(-1, 1)`;
+    initEngine(car, "stopped");
+    carModel.style.left = "6%";
 };
+
+export const startRace = async () => {
+    const race = RaceEntity.currentCars?.map(async (car) => {
+        const init = await initEngine(car, "started");
+        const time = calculateTime(init.distance, init.velocity);
+
+        return startEngine(car, time);
+    });
+
+    const raceOver = await Promise.allSettled([race]);
+};
+
+export const resetRace = async () => RaceEntity.currentCars?.forEach((car) => resetEngine(car));
