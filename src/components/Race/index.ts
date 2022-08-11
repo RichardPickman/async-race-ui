@@ -1,6 +1,7 @@
-import { Car } from "./../../types/index";
+import { Car, raceReject, raceSuccess, Winner } from "./../../types/index";
 import Race from "../../render/Race";
 import FetchCars from "../Fetch/Cars";
+import { createWinner, getWinner, getWinners, updateWinner } from "../Winners";
 
 const RaceEntity = new Race();
 
@@ -10,6 +11,12 @@ export const getCars = async (page: number, limit: number) => {
 
         return result;
     });
+
+    return response;
+};
+
+export const getCar = async (id: number) => {
+    const response = await FetchCars.getCar(id);
 
     return response;
 };
@@ -36,7 +43,7 @@ type engine = {
     velocity: number;
     distance: number;
 };
-
+    
 export const initEngine = async (car: Car, status: "started" | "stopped") => {
     const start: engine = await FetchCars.handleEngine(car.id as number, status);
 
@@ -45,62 +52,117 @@ export const initEngine = async (car: Car, status: "started" | "stopped") => {
 
 export const calculateTime = (distance: number, velocity: number) => distance / velocity;
 
-export const startEngine = async (_car: Car, time: number) => {
+
+
+// 500 000 | velocity = x, ms
+
+// [x  ...    y]
+// [0% ... 100%]
+
+// 
+
+let anim: boolean;
+    
+export const startEngine = async (_car: Car, time: number): Promise<raceSuccess | raceReject> => {
+    const start = FetchCars.handleSwitch(_car.id as number);
+
+    anim = true;
+    startAnimation(_car, time);
+
+    start.then((res) => {
+        res.id = _car.id;
+        anim = false
+    })
+    start.catch(() => (anim = false));
+
+    return start;
+};
+
+const startAnimation = (_car: Car, time: number) => {
     const track = document.querySelector(`[data-id="${_car.id}"]`) as HTMLElement;
-    const car = track?.querySelector(".car__model") as HTMLElement;
-    const flag = track?.querySelector(".car__finish") as HTMLElement;
+    const car = track?.querySelector('.car__model') as HTMLElement;
+    const flag = track?.querySelector('.car__finish') as HTMLElement;
 
     const refreshRate = 60;
 
-    const flagPosition = track?.clientWidth - flag?.getBoundingClientRect().right;
+    const flagPosition = track?.clientWidth - flag?.getBoundingClientRect().left;
     const trackWidth = track?.clientWidth - car.getBoundingClientRect().left - flagPosition;
 
-    const interval = time / refreshRate;
-    const step = trackWidth / interval;
+    const step = (trackWidth / time) * refreshRate;
+    const carPosition = car?.getBoundingClientRect();
 
-    const targetPosition = car?.getBoundingClientRect().left + trackWidth;
+    const targetPosition = window.scrollX + carPosition.left + trackWidth ;
+        
+    let ts = Date.now()
 
-    let isEngineRunning = true;
-
-    let ts = Date.now();
+    car.style.left = car?.getBoundingClientRect().left + 'px';
 
     const cb = () => {
-        const position = window.scrollX + car?.getBoundingClientRect().left + step;
-
-        if (Date.now() - ts >= interval) {
+        const position = window.scrollX + parseInt(car.style.left) + step; //car?.getBoundingClientRect().left + step;
+        
+        if (Date.now() - ts >= refreshRate) {
             ts = Date.now();
+
             car.style.left = `${position}px`;
         }
 
-        if (position < targetPosition && isEngineRunning) {
+        if (position <= targetPosition && anim) {
             requestAnimationFrame(cb);
         }
     };
 
     requestAnimationFrame(cb);
+}
 
-    const start = FetchCars.handleSwitch(_car.id as number);
+export const resetEngine = (car: Car) => {
+    const findBlock = document.querySelector(`[data-id="${car.id}"]`) as HTMLElement;
+    const findCar = findBlock.querySelector(".car__model") as HTMLElement;
 
-    start.catch(() => (isEngineRunning = false));
-};
-
-export const resetEngine = async (car: Car) => {
-    const carTag = document.querySelector(`[data-id="${car.id}"]`) as HTMLElement;
-    const carModel = carTag.querySelector(".car__model") as HTMLElement;
-
-    initEngine(car, "stopped");
-    carModel.style.left = "6%";
+    findCar.style.transform = `translateX(0px) scale(-1, 1)`;
+    anim = false;
+    initEngine(car, 'stopped');
 };
 
 export const startRace = async () => {
-    const race = RaceEntity.currentCars?.map(async (car) => {
-        const init = await initEngine(car, "started");
-        const time = calculateTime(init.distance, init.velocity);
+    const timers: number[] = [];
+    const race = RaceEntity._currentCars?.map(async (car) => {
+        const engine = await initEngine(car, 'started');
+        const time = calculateTime(engine.distance, engine.velocity);
+
+        timers.push(time);
 
         return startEngine(car, time);
-    });
+    }) as Promise<raceSuccess | raceReject>[];
 
-    const raceOver = await Promise.allSettled([race]);
-};
+    Promise.allSettled(race).then(async (arr) => {
+        if (!RaceEntity._currentCars) {
+            return;
+        }
+        
+        const winTime = Math.min(...timers);
+        const index = timers.indexOf(winTime);
+        const car = RaceEntity._currentCars[index];
+        const winnerQuery = await getWinner(car.id as number);
+        const winner = await winnerQuery.json();
 
-export const resetRace = async () => RaceEntity.currentCars?.forEach((car) => resetEngine(car));
+        if (winnerQuery.status === 404) {
+            const winnerData: Winner = { 
+                id: car.id as number,
+                wins: 1,
+                time: Number((winTime / 1000).toFixed(2)),
+            }
+            await createWinner(winnerData);
+
+            return;
+        }
+
+        if (winner.time < winTime) {
+            winner.time = Number((winTime / 1000).toFixed(2));
+        }
+
+        winner.wins = winner.wins + 1;
+
+        updateWinner(car.id as number, winner);
+
+    })
+}

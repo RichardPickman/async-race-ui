@@ -13,9 +13,18 @@ namespace FetchWinner {
         return response.json();
     };
 
-    export const getWinner = async (id: number) => await fetch(`http://localhost:3000/winners/${id}`);
+    export const getWinner = async (id: number) => {
+        const response = await fetch(`http://localhost:3000/winners/${id}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
 
-    export const createCar = async (data: Winner) => {
+        return response;
+    }
+
+    export const createWinner = async (data: Winner) => {
         const response = await fetch("http://localhost:3000/winners", {
             method: "POST",
             headers: {
@@ -39,7 +48,7 @@ namespace FetchWinner {
     };
 
     export const updateWinner = async (id: number, data: Winner) => {
-        const response = await fetch(`http://localhost:3000/garage/${id}`, {
+        const response = await fetch(`http://localhost:3000/winners/${id}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",

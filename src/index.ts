@@ -1,5 +1,5 @@
 import { handleCarAmount, handlePages } from "./components/Race/helpers";
-import { getCars, resetRace, startRace } from "./components/Race";
+import { getCars, resetEngine, startRace } from "./components/Race";
 import { generateCars, handleCar } from "./helpers";
 import "./sass/style.scss";
 import { getWinners } from "./components/Winners";
@@ -8,7 +8,6 @@ const App = async () => {
     let page = 1;
     let limit = 7;
 
-    getWinners();
     getCars(page, limit);
     handleCarAmount();
 
@@ -31,16 +30,25 @@ const App = async () => {
     document.querySelector(".nav__garage")?.addEventListener("click", () => {
         document.querySelector(".racing")?.classList.remove("hide");
         document.querySelector(".winners")?.classList.add("hide");
+        getCars(page, limit)
     });
 
     document.querySelector(".nav__winners")?.addEventListener("click", () => {
         document.querySelector(".racing")?.classList.add("hide");
         document.querySelector(".winners")?.classList.remove("hide");
+        const root = document.querySelector('.winner-table__winners');
+
+        root?.childNodes.forEach(el => el.remove());
+        getWinners()
     });
 
     document.querySelector(".form__race")?.addEventListener("click", () => startRace());
 
-    document.querySelector(".form__reset")?.addEventListener("click", () => resetRace());
+    document.querySelector(".form__reset")?.addEventListener("click", async () => {
+        const cars = await getCars(page, limit);
+
+        cars.forEach(car => resetEngine(car))
+    });
 };
 
 App();

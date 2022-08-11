@@ -1,6 +1,6 @@
 import { calculateTime, resetEngine } from "../components/Race/index";
 import FetchCars from "../components/Fetch/Cars";
-import { Car, Winner } from "../types";
+import { Car } from "../types";
 import { handleCarAmount } from "../components/Race/helpers";
 import { initEngine, startEngine } from "../components/Race";
 
@@ -35,7 +35,10 @@ class Race {
                 startEngine(car, time);
             });
 
-            fragment.querySelector(".car__btn-finish")?.addEventListener("click", async () => resetEngine(car));
+            fragment.querySelector(".car__btn-finish")?.addEventListener("click", async () => {
+                await initEngine(car, "stopped");
+                resetEngine(car);
+            });
 
             fragment.querySelector(".car__remove")?.addEventListener("click", () => {
                 FetchCars.removeCar(car.id as number);
@@ -59,10 +62,6 @@ class Race {
 
     get selectedCar() {
         return this._selectedCar;
-    }
-
-    get currentCars() {
-        return this._currentCars;
     }
 }
 
