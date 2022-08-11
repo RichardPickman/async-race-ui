@@ -60,25 +60,8 @@ export const calculateTime = (distance: number, velocity: number) => distance / 
 // [0% ... 100%]
 
 // 
-
-let anim: boolean;
     
 export const startEngine = async (_car: Car, time: number): Promise<raceSuccess | raceReject> => {
-    const start = FetchCars.handleSwitch(_car.id as number);
-
-    anim = true;
-    startAnimation(_car, time);
-
-    start.then((res) => {
-        res.id = _car.id;
-        anim = false
-    })
-    start.catch(() => (anim = false));
-
-    return start;
-};
-
-const startAnimation = (_car: Car, time: number) => {
     const track = document.querySelector(`[data-id="${_car.id}"]`) as HTMLElement;
     const car = track?.querySelector('.car__model') as HTMLElement;
     const flag = track?.querySelector('.car__finish') as HTMLElement;
@@ -92,6 +75,8 @@ const startAnimation = (_car: Car, time: number) => {
     const carPosition = car?.getBoundingClientRect();
 
     const targetPosition = window.scrollX + carPosition.left + trackWidth ;
+
+    let isEngineRunning = true;
         
     let ts = Date.now()
 
@@ -106,20 +91,29 @@ const startAnimation = (_car: Car, time: number) => {
             car.style.left = `${position}px`;
         }
 
-        if (position <= targetPosition && anim) {
+        if (position <= targetPosition && isEngineRunning) {
             requestAnimationFrame(cb);
         }
     };
 
     requestAnimationFrame(cb);
-}
+
+    const start = FetchCars.handleSwitch(_car.id as number);
+
+    start.then((res) => {
+        res.id = _car.id;
+        isEngineRunning = false
+    })
+    start.catch(() => (isEngineRunning = false));
+
+    return start;
+};
 
 export const resetEngine = (car: Car) => {
     const findBlock = document.querySelector(`[data-id="${car.id}"]`) as HTMLElement;
     const findCar = findBlock.querySelector(".car__model") as HTMLElement;
 
     findCar.style.transform = `translateX(0px) scale(-1, 1)`;
-    anim = false;
     initEngine(car, 'stopped');
 };
 
